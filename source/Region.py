@@ -5,7 +5,8 @@ import numpy as np
 from shapely import points
 from shapely.geometry import box
 
-from source.DEM.OpenTopography import OpenTopography
+from source.DEM.copernicusDEM import copernicusDEM
+from source.DEM.Lantmateriet import Lantmateriet
 from source.Terrain import Terrain
 
 import rasterio
@@ -143,9 +144,8 @@ class Region:
     def generate(
         self,
         nr_points,
-        demtype="COP30",
-        outputFormat="GTiff",
-        dataserver="global"
+        demtype,
+        workers=1
     ):
 
         grid = self.generate_gridpoints(
@@ -155,36 +155,45 @@ class Region:
         return self.fetch_dem_heights(
             grid,
             demtype=demtype,
-            outputFormat=outputFormat,
-            dataserver=dataserver
+            workers=workers
         )
     
 
-    def fetch_dem_heights(self, data, demtype="COP30", outputFormat="GTiff", dataserver="global"):
+    def fetch_dem_heights(self, data, demtype="COP30",
+                          workers=1):
         minx, miny, maxx, maxy = (
             data.to_crs("EPSG:4326")
             .total_bounds
         )
         
-        topo = OpenTopography(demtype=demtype,
-                              south=miny,
-                              north=maxy,
-                              west=minx,
-                              east=maxx,
-                              outputFormat=outputFormat,
-                              dataserver=dataserver)
+        match demtype:
+            case "COP30":
+                topo = copernicusDEM(demtype=demtype,
+                                     south=miny,
+                                     north=maxy,
+                                     west=minx,
+                                     east=maxx)
         
-        filepaths = topo.download_recursive(south=miny,
-                                            north=maxy,
-                                            west=minx,
-                                            east=maxx)
-        
-        terrain  = self.construct_heights(filepaths, data)
-        
-        return terrain
+                filepaths = topo.download_recursive(south=miny,
+                                                    north=maxy,
+                                                    west=minx,
+                                                    east=maxx)
+            
+            case "Lantmateriet":
+                topo = Lantmateriet(
+                    south=miny,
+                    north=maxy,
+                    west=minx,
+                    east=maxx
+                )
+                print("Downloading dem from Lantmäteriet Markhöjdmodell")
+                filepaths = topo.download_parallel(workers=workers)
 
-        
-    def construct_heights(self, filepaths, grid):
+        terrain  = self.construct_heights_from_filepath(filepaths, data)
+            
+        return terrain
+    
+    def construct_heights_from_filepath(self, filepaths, grid):
             
             new_grid = grid.to_crs("EPSG:4326").copy()
             lons = new_grid.geometry.x.values
