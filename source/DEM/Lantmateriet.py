@@ -1,3 +1,10 @@
+'''
+Disclaimer: 
+
+Work in progress. Still has a few quirks that need to be treated for the purpose of product processing.
+
+'''
+
 import requests
 import os
 import polars as pl
