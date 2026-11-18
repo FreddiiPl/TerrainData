@@ -11,6 +11,19 @@ credentials_path = script_dir / "../credentials.env"
 
 load_dotenv(credentials_path)
 
+from urllib.parse import ParseResult, urlencode, urlunparse
+from pathlib import Path
+from tqdm import tqdm
+from dotenv import load_dotenv
+import numpy as np
+import requests
+import os
+
+script_dir = Path(__file__).resolve().parent
+credentials_path = script_dir / "credentials.env"
+
+load_dotenv(credentials_path)
+
 class OpenTopography:
     
     SCHEME        = "https"
@@ -29,6 +42,7 @@ class OpenTopography:
                 east=None,
                 outputFormat=None,
                 dataserver=None,
+                dir=None,
                 ):
         self.south = south
         self.north = north
@@ -46,7 +60,12 @@ class OpenTopography:
         self.api_key = os.getenv("OpenTopography_API_Key")
         self.server = f"{self.BASE}/{self.name}"
         
-        self._cache()
+        self.dir = dir
+        if dir is not None:  
+            self._cache(dir=self.dir)
+        else:
+            self._cache()
+
         if outputFormat in self.VALID_FORMATS.keys():
             file_extension = self.VALID_FORMATS[outputFormat]
             
@@ -117,7 +136,8 @@ class OpenTopography:
                 west=west,
                 east=east,
                 outputFormat=self.outputFormat,
-                dataserver=self.dataserver
+                dataserver=self.dataserver,
+                dir=self.cache_dir
             )
         
         if topo.filepath.is_file():
@@ -207,3 +227,4 @@ class OpenTopography:
                     print(f"Could not delete {file}: {e}")
   
     
+
