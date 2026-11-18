@@ -1,24 +1,25 @@
-
 import numpy as np
 
 from scipy.interpolate import griddata
 from pyproj import Geod
 
 import cartopy.crs as ccrs
-import cartopy.feature as cfeature
 
 import matplotlib.pyplot as plt
 import matplotlib        as mpl
 mpl.rcParams['axes.linewidth'] = 1.2
 mpl.rcParams['xtick.direction'] = 'in'
 mpl.rcParams['ytick.direction'] = 'in'
-mpl.rcParams['xtick.top'] = True
-mpl.rcParams['ytick.right'] = True
-mpl.rcParams['xtick.minor.visible'] = True
-mpl.rcParams['ytick.minor.visible'] = True
+mpl.rcParams['xtick.top'] = False
+mpl.rcParams['ytick.right'] = False
+mpl.rcParams['xtick.minor.visible'] = False
+mpl.rcParams['ytick.minor.visible'] = False
 mpl.rcParams['font.weight'] = 'bold'
 mpl.rcParams['font.size'] = 12
 mpl.rcParams['axes.labelweight'] = 'bold'
+
+
+
 
 
 class Terrain:
@@ -93,31 +94,77 @@ class Terrain:
 
         return (self.distance, self.height_profile)
 
+        
+    
 
-    def plot_grid(self,):
+    def plot_grid(self,nr_points=100):
+        lon_min = self.lon.min()
+        lon_max = self.lon.max()
+        lat_min = self.lat.min()
+        lat_max = self.lat.max()
+        lo_grid = np.linspace(lon_min, lon_max, nr_points)
+        la_grid = np.linspace(lat_min, lat_max, nr_points)
+        
+        lo, la = np.meshgrid(
+            lo_grid, la_grid
+        )
+        
+        h = griddata(
+            (self.lon, self.lat),
+            self.height,
+            (lo, la),
+            method = "linear"
+        )
+        
         fig = plt.figure(figsize=(12,8))
         ax  = plt.axes(projection=ccrs.PlateCarree())
-        ax.add_feature(
-            cfeature.LAND,
-            facecolor="lightgray"
-        )
 
-        cf = ax.scatter(
-            self.lon,
-            self.lat,
-            c=self.height,
-            cmap="terrain",
-            s=20,
+        cf = ax.contourf(
+            lo,
+            la,
+            h,
+            levels=100,
+            cmap="magma",
             transform=ccrs.PlateCarree()
         )
+        
+        cs = ax.contour(
+            lo, la, h,
+            levels=np.arange(
+                np.nanmin(h),
+                np.nanmax(h),
+                100
+            ),
+            colors="k",
+            linewidths=0.5,
+            alpha=0.3
+        )
 
-        ax.gridlines(
+        gl = ax.gridlines(
             draw_labels=True,
             linestyle=":",
-            alpha=0.5
+            alpha=0.1
                     )
         
-        plt.colorbar(cf, ax=ax, shrink=0.71),
+        gl.top_labels = False
+        gl.right_labels = False
+        
+        ax.clabel(cs, fmt="%d m", fontsize=8)
+        
+        ax.set_title(
+            "Terrain Elevation Map",
+            fontsize=14,
+            pad=15,
+            fontweight="bold"
+        )
+
+                
+        ax.set_xlim(lon_min, lon_max)
+        ax.set_ylim(lat_min, lat_max)
+        
+        
+        ax.set_aspect("auto")
+        plt.colorbar(cf, ax=ax, label="Height [m]"),
         plt.tight_layout()
         plt.show()
     
