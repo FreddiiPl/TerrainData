@@ -189,6 +189,18 @@ class Region:
                 print("Downloading dem from Lantmäteriet Markhöjdmodell")
                 filepaths = topo.download_parallel(workers=workers)
 
+        # # test
+        # with rasterio.open(filepaths[0]) as src:
+        #     print(src.crs)
+        #     print(src.bounds)
+        #     print(src.count)
+
+        #     arr = src.read(1)
+
+        #     print(arr.min())
+        #     print(arr.max())
+        #     print(src.nodata)
+        
         terrain  = self.construct_heights_from_filepath(filepaths, data)
             
         return terrain
@@ -196,8 +208,6 @@ class Region:
     def construct_heights_from_filepath(self, filepaths, grid):
             
             new_grid = grid.to_crs("EPSG:4326").copy()
-            lons = new_grid.geometry.x.values
-            lats = new_grid.geometry.y.values
             
             heights = np.full(len(new_grid), np.nan)
             
@@ -207,7 +217,15 @@ class Region:
                     break
                 
                 with rasterio.open(filepath) as src:
-                    rows, cols = rasterio.transform.rowcol(src.transform, lons, lats)
+                    projected_grid = (
+                        grid
+                        .to_crs(src.crs)
+                        .copy()
+                    )
+                    xs = projected_grid.geometry.x.values
+                    ys = projected_grid.geometry.y.values
+                    
+                    rows, cols = rasterio.transform.rowcol(src.transform, xs, ys)
                     rows = np.array(rows)
                     cols = np.array(cols)
 
