@@ -26,3 +26,5 @@ region = Region.from_bounds(
     north=67.90249
 )
 ```
+
+![alt text](https://github.com/FreddiiPl/TerrainData/blob/main/figures/kebnekaise.jpg)
