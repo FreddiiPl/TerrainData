@@ -7,7 +7,7 @@ import requests
 import os
 
 script_dir = Path(__file__).resolve().parent
-credentials_path = script_dir / "credentials.env"
+credentials_path = script_dir / "../credentials.env"
 
 load_dotenv(credentials_path)
 
