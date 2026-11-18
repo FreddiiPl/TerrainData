@@ -1,0 +1,11 @@
+tqdm
+dotenv
+numpy
+requests
+polars
+geopandas
+shapely
+rasterio
+scipy
+cartopy
+matplotlib
