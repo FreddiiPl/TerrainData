@@ -17,6 +17,8 @@ These two options are country bounds:
 region = Region.from_country(country="Sweden")
 ```
 
+![alt text](https://github.com/FreddiiPl/TerrainData/blob/main/figures/Sweden_hexbin.jpg)
+
 and custom bounds:
 ```
 region = Region.from_bounds(
