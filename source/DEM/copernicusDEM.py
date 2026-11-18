@@ -1,5 +1,5 @@
 import os
-from source.DEM.OpenTopography import OpenTopography
+from source.DEM.OpenTopo.OpenTopography import OpenTopography
 
 
 class copernicusDEM(OpenTopography):
@@ -35,9 +35,3 @@ class copernicusDEM(OpenTopography):
             dataserver="global",
             dir=self.dir
         )
-
-
-
-
-        
-
