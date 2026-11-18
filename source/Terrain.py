@@ -4,9 +4,11 @@ from scipy.interpolate import griddata
 from pyproj import Geod
 
 import cartopy.crs as ccrs
+import cartopy.feature as cfeature
 
 import matplotlib.pyplot as plt
 import matplotlib        as mpl
+from matplotlib.patches import Circle
 mpl.rcParams['axes.linewidth'] = 1.2
 mpl.rcParams['xtick.direction'] = 'in'
 mpl.rcParams['ytick.direction'] = 'in'
@@ -97,7 +99,7 @@ class Terrain:
         
     
 
-    def plot_grid(self,nr_points=100):
+    def plot_grid(self,nr_points=100, savefig=None):
         lon_min = self.lon.min()
         lon_max = self.lon.max()
         lat_min = self.lat.min()
@@ -152,7 +154,7 @@ class Terrain:
         ax.clabel(cs, fmt="%d m", fontsize=8)
         
         ax.set_title(
-            "Terrain Elevation Map",
+            "Terrain Elevation Map - Kebnekaise (Lantmäteriet 1m source)",
             fontsize=14,
             pad=15,
             fontweight="bold"
@@ -167,7 +169,37 @@ class Terrain:
         plt.colorbar(cf, ax=ax, label="Height [m]"),
         plt.tight_layout()
         plt.show()
+        if savefig is not None:
+            fig.savefig(f"./figures/{savefig}", dpi=300)
     
+    
+    def plot_hexbin(self, savefig=None):
+        fig = plt.figure(figsize=(12, 8))
+        ax = plt.axes(projection=ccrs.PlateCarree())
+        ax.add_feature(
+            cfeature.LAND,
+            facecolor="lightgray"
+        )
+        
+        hb = ax.hexbin(
+            self.lon,
+            self.lat,
+            C=self.height,
+            gridsize=500,
+            cmap="magma",
+            transform=ccrs.PlateCarree(),
+        )
+        
+        self.add_compass_rose(ax=ax)
+        
+        plt.colorbar(hb, ax=ax, label="Height [m]")
+
+        plt.tight_layout()
+        plt.show()
+        
+        if savefig is not None:
+            fig.savefig(f"./figures/{savefig}", dpi=300)
+        
 
     def plot_profile(self,):
         fig, ax = plt.subplots(figsize=(12,8))
@@ -177,3 +209,60 @@ class Terrain:
 
         plt.tight_layout()
         plt.show()
+
+    
+    @staticmethod
+    def add_compass_rose(ax, x=0.9, y=0.1, size=0.05):
+        # Outer circle
+        circle = Circle(
+            (x, y),
+            size,
+            transform=ax.transAxes,
+            fill=False,
+            lw=1.5,
+            color="black",
+            zorder=100
+        )
+        ax.add_patch(circle)
+
+        # Cardinal directions
+        ax.text(x, y + size * 1.4, "N",
+                transform=ax.transAxes,
+                ha="center", va="center",
+                fontsize=12, fontweight="bold")
+
+        ax.text(x, y - size * 1.4, "S",
+                transform=ax.transAxes,
+                ha="center", va="center")
+
+        ax.text(x + size * 1.4, y, "E",
+                transform=ax.transAxes,
+                ha="center", va="center")
+
+        ax.text(x - size * 1.4, y, "W",
+                transform=ax.transAxes,
+                ha="center", va="center")
+
+        # Main north arrow
+        ax.annotate(
+            "",
+            xy=(x, y + size * 0.8),
+            xytext=(x, y - size * 0.8),
+            xycoords=ax.transAxes,
+            arrowprops=dict(
+                arrowstyle="-|>",
+                lw=2,
+                color="black"
+            ),
+            zorder=101
+        )
+
+        # East-West line
+        ax.plot(
+            [x - size * 0.8, x + size * 0.8],
+            [y, y],
+            transform=ax.transAxes,
+            color="black",
+            lw=1,
+            zorder=101
+        )
