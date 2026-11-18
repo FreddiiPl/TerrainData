@@ -27,4 +27,4 @@ region = Region.from_bounds(
 )
 ```
 
-![alt text](https://github.com/FreddiiPl/TerrainData/blob/main/figures/kebnekaise.jpg)
+![alt text](https://github.com/FreddiiPl/TerrainData/blob/main/figures/kebnekaise_lantmateriet.jpg)
