@@ -3,6 +3,7 @@ dotenv
 numpy
 requests
 polars
+pyproj
 geopandas
 shapely
 rasterio
